@@ -12,10 +12,10 @@ import java.util.PriorityQueue;
  * transactions in the file it will spend them in order from oldest to newest transaction, 
  * all while making sure no company's point totals go negative
  */
-public class SpendPoints {
-    public PriorityQueue<Transaction> transactions; // Min heap of transactions by completion time
-    public Hashtable<String, Integer> comps; // list of companies mapped to total pts left
-    int points = 0; //points user has left to spend
+public class User {
+    private PriorityQueue<Transaction> transactions; // Min heap of transactions by completion time
+    private Hashtable<String, Integer> comps; // list of companies mapped to total pts left
+    private int points = 0; //points user has left to spend
 
     /**
      * Constructor for this SpendPoints Class
@@ -23,7 +23,7 @@ public class SpendPoints {
      * @param points the amount of points a user wants to spend
      * @throws IllegalArgumentException if points is negative
      */
-    public SpendPoints(int points) throws IllegalArgumentException{
+    public User(int points) throws IllegalArgumentException{
         if (points < 0) {
             throw new IllegalArgumentException("Can't spend negative points");
         }
@@ -112,27 +112,28 @@ public class SpendPoints {
         //list of negative point and same-company transactions so we can move forward in heap
         negPts.add(this.transactions.poll());
         //new val of company points so we can correct it at end
-        int compPts = this.comps.get(negPts.get(0).getName()) - negPts.get(0).getPoints();
         while (!this.transactions.isEmpty()) {
             Transaction curr = this.transactions.peek();
             // current transaction is negative or has same company as current transaction
-            if (curr.getPoints() < 0 || curr.getName().equals(negPts.get(0).getName())) {
+            if (curr.getPoints() < 0) {
                 //store transaction to the side so we can continue iterating
                 negPts.add(this.transactions.poll());
             }
             // more points required to fix current transaction
             else if (negPts.get(0).getPoints() * -1 >= curr.getPoints()) {
-                //remove current transaction and add it's value to negative transaction
-                negPts.get(0).setPoints(negPts.get(0).getPoints() - curr.getPoints());
+                //add current transaction's point total to negative transaction's
+                negPts.get(0).setPoints(negPts.get(0).getPoints() + curr.getPoints());
                 //add points to negative transaction company's point total
                 this.comps.put(negPts.get(0).getName(), this.comps.get(negPts.get(0).getName()) + curr.getPoints());
                 //subtract points from current transaction company's point total
                 this.comps.put(curr.getName(), this.comps.get(curr.getName()) - curr.getPoints());
+                //remove current transaction
+                this.transactions.poll();
             }
             // can fix current transaction
             else {
                 //set negative transaction's company point total
-                this.comps.put(negPts.get(0).getName(), this.comps.get(negPts.get(0).getName()) + curr.getPoints());
+                this.comps.put(negPts.get(0).getName(), this.comps.get(negPts.get(0).getName()) - negPts.get(0).getPoints());
                 //set current transaction's points
                 curr.setPoints(curr.getPoints() + negPts.get(0).getPoints());
                 //set current transation's company point total
@@ -141,7 +142,6 @@ public class SpendPoints {
             }
         }
         // Add negative transaction back to heap
-        this.comps.put(negPts.get(0).getName(), compPts);
         for (int i = 1; i < negPts.size(); i++) {
             this.transactions.add(negPts.get(i));
         }
@@ -155,19 +155,15 @@ public class SpendPoints {
      */
     public void correctNegComps() {
         for (HashMap.Entry<String, Integer> mapElement : this.comps.entrySet()) {
-            ArrayList<Transaction> negPts = new ArrayList<>(); //negative transactions not from current company
-            ArrayList<Transaction> payments = new ArrayList<>();// transactions from current company
+            ArrayList<Transaction> negPts = new ArrayList<>(); //list of negative transactions or transactions from same company
             if (mapElement.getValue() < 0) {
+                //create new transaction for company
+                Transaction transaction = new Transaction(mapElement.getKey(), 0, this.transactions.peek().getDate() + "");
                 while (!this.transactions.isEmpty() && mapElement.getValue() < 0) {
                     // current transaction has same company as current transaction,
                     // put it to the side and add it back to min heap after done fixing current
                     Transaction curr = this.transactions.peek();
-                    if(curr.getName().equals(mapElement.getKey())) {
-                        // put it to the side and add it back to min heap after done fixing current
-                        payments.add(this.transactions.poll());
-                    }
-                    //current transaction is negative
-                    else if (curr.getPoints() < 0){
+                    if(curr.getName().equals(mapElement.getKey()) || curr.getPoints() < 0){
                         // put it to the side and add it back to min heap after done fixing current
                         negPts.add(this.transactions.poll());
                     }
@@ -178,23 +174,27 @@ public class SpendPoints {
                                 this.comps.get(curr.getName())
                                         - curr.getPoints());
                         //add money to transaction for negative company
-                        payments.get(0).setPoints(payments.get(0).getPoints() + curr.getPoints());
+                        transaction.setPoints(transaction.getPoints() + curr.getPoints());
                         //remove transaction and add pts val to company with neg points
                         mapElement.setValue(mapElement.getValue() + this.transactions.poll().getPoints());
                     }
                     // can set company's points back to zero
                     else {
                         //add money to transaction for negative company
-                        payments.get(0).setPoints(payments.get(0).getPoints() + -1 * mapElement.getValue());
+                        transaction.setPoints(transaction.getPoints() + -1 * mapElement.getValue());
                         //subtract points taken from other company
                         this.comps.put(curr.getName(), this.comps.get(curr.getName()) + mapElement.getValue());
                         //subtract points from transaction
                         curr.setPoints(curr.getPoints() + mapElement.getValue());
                         //set company's points to zero
                         mapElement.setValue(0);
+                        //remove curr if point total is zero
+                        if(curr.getPoints() == 0) this.transactions.poll();
                         
                     }
                 }
+                //add transaction into heap
+                this.transactions.add(transaction);
             }
             //add transactions back to heap
             for(int i = 0; i < negPts.size(); i++){
@@ -220,5 +220,32 @@ public class SpendPoints {
         String res = sb.toString();
         res = res.substring(0, res.length() - 2);
         return res;
+    }
+
+    /**
+     * gets point for given User object
+     * 
+     * @return the amount of points a user has left to spend
+     */
+    public int getPoints(){
+        return this.points;
+    }
+
+    /**
+     * gets remaing transactions from a user object
+     * 
+     * @return the heap of transaction left
+     */
+    public PriorityQueue<Transaction> getTransactions(){
+        return this.transactions;
+    }
+
+    /**
+     * A mapping of companies to the amount of points each has remaining
+     * 
+     * @return a Hashtable of companies and the remaing amount of points each has
+     */
+    public Hashtable<String, Integer> getComps(){
+        return this.comps;
     }
 }

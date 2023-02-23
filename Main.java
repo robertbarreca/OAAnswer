@@ -9,7 +9,7 @@ public class Main {
         Scanner scnr = new Scanner(System.in);
         int points = scnr.nextInt();
         String fileName = scnr.next();
-        SpendPoints sp = new SpendPoints(points);
+        User sp = new User(points);
         sp.init(fileName);
         sp.spendPoints();
         sp.correctNegComps();
