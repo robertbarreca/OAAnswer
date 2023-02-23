@@ -1,5 +1,9 @@
 import java.util.Scanner;
 
+/**
+ * This class runs the whole thing. it first takes in input from the command 
+ * line and then processes the user's request based on the csv file's input
+ */
 public class Main {
     public static void main(String[] args) {
         Scanner scnr = new Scanner(System.in);
