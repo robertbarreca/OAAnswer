@@ -13,12 +13,9 @@ javac Transaction.java
 javac SpendPoints.java
 javac Main.java
 
-After we've compiled the files, we can them run them using the following command:
+After we've compiled the files, we can them run them using the following command where points requested is an integer and fileName is a csv file:
 
 java Main pointsRequested fileName
 
 Testing:
 In order to test my code I ran various methods focusing those in the User class based on multiple csv files. Since I can only create small csv files, there are probably bugs that would be better found using a larger csv file.
-
-pointsRequested should be an integer and fileName should be a csv file of the same format of transactions.csv.
-Note: The only file in this repository is transactions.csv, which you are welcome to use. However, to thoroughly test code we would want to create a new csv file with the same format but different name.
