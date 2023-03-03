@@ -1,6 +1,6 @@
 Fetch Rewards Take Home Test
 
-This project reads transaction data from a .csv file. From the data read a user can submit an integer requesting the number of points they want to spend. Then from the transactional data read in from the csv file, the user will first spend points from the oldest transactional data first to the newest transaction. After the all the transactions have been completed, the program will then print out to the user the current number of points each company has remaining.  
+This project reads transaction data from a .csv file. The user can then submit an integer requesting the number of points they want to spend through the command line. Then from the transactional data read in from the csv file, the user will first spend points from the oldest transactional data first to the newest transaction. After the all the transactions have been completed, the program will then print out to the user the current number of points each company has remaining.  
 
 Languages Used: Java
 
